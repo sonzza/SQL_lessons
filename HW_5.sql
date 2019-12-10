@@ -47,7 +47,7 @@ SELECT AVG(TIMESTAMPDIFF(YEAR, birthday_at, NOW())) AS `avg` FROM users;
 
 -- #2.2 Подсчитайте количество дней рождения, которые приходятся на каждый из дней недели. Следует учесть, что необходимы дни недели текущего года, а не года рождения.
 SELECT ADDDATE(birthday_at, INTERVAL (TIMESTAMPDIFF(YEAR, birthday_at, NOW())) YEAR) FROM users;
-SELECT DAYNAME(ADDDATE(birthday_at, INTERVAL (TIMESTAMPDIFF(YEAR, birthday_at, NOW())) YEAR)) AS `weekday`, COUNT(*) FROM users GROUP BY DAYNAME(ADDDATE(birthday_at, INTERVAL (TIMESTAMPDIFF(YEAR, birthday_at, NOW())) YEAR));
+SELECT DAYNAME(ADDDATE(birthday_at, INTERVAL (TIMESTAMPDIFF(YEAR, birthday_at, NOW())) YEAR)) AS `weekday`, COUNT(*) FROM users GROUP BY `weekday`;
 
 -- #2.3 (по желанию) Подсчитайте произведение чисел в столбце таблицы
 SELECT ROUND(EXP(SUM(LN(id))), 2) FROM users;

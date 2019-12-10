@@ -38,6 +38,79 @@ ALTER TABLE profiles MODIFY COLUMN photo_id INT;
 
  SET SQL_SAFE_UPDATES = 0; 
 
+
+CREATE TABLE user_privacy (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,  
+  user_id INT UNSIGNED NOT NULL,
+  section_id INT UNSIGNED NOT NULL,
+  privacy_id INT UNSIGNED NOT NULL,
+  created_at DATETIME DEFAULT NOW(),
+  updated_at DATETIME DEFAULT NOW() ON UPDATE NOW()
+);
+
+
+CREATE TABLE section (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,  
+  name VARCHAR(255) NOT NULL
+);
+
+
+INSERT INTO `section` (`id`, `name`) VALUES (1, 'Кто видит основную информацию моей страницы');
+INSERT INTO `section` (`id`, `name`) VALUES (2, 'Кто видит фотографии, на которых меня отметили');
+INSERT INTO `section` (`id`, `name`) VALUES (3, 'Кто видит список моих сохранённых фотографий');
+INSERT INTO `section` (`id`, `name`) VALUES (4, 'Кто видит список моих групп');
+
+
+--Справочник вариантов видимости объектов
+CREATE TABLE privacy (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,  
+  name VARCHAR(255) NOT NULL
+);
+
+
+INSERT INTO `privacy` (`id`, `name`) VALUES (1, 'Все пользователи');
+INSERT INTO `privacy` (`id`, `name`) VALUES (2, 'Только друзья');
+INSERT INTO `privacy` (`id`, `name`) VALUES (3, 'Друзья и друзья друзей');
+INSERT INTO `privacy` (`id`, `name`) VALUES (4, 'Только я');
+INSERT INTO `privacy` (`id`, `name`) VALUES (5, 'Все кроме...');
+INSERT INTO `privacy` (`id`, `name`) VALUES (6, 'Некоторые друзья');
+
+
+CREATE TABLE privacy_except_user (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,  
+  user_id INT UNSIGNED NOT NULL,
+  friend_id INT UNSIGNED NOT NULL,
+  privacy_id INT UNSIGNED NOT NULL
+);
+
+
+
+DESC communities;
+ALTER TABLE communities ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER name;
+ALTER TABLE communities ADD COLUMN is_closed BOOLEAN AFTER created_at;
+ALTER TABLE communities ADD COLUMN closed_at TIMESTAMP AFTER is_closed;
+
+UPDATE communities SET is_closed = TRUE WHERE id IN (3, 14, 27, 56);
+UPDATE communities SET closed_at = NOW() WHERE is_closed IS TRUE;
+
+
+DESC communities_users;
+ALTER TABLE communities_users ADD column is_banned BOOLEAN AFTER user_id;
+ALTER TABLE communities_users ADD column is_admin BOOLEAN AFTER user_id;
+
+UPDATE communities_users SET is_banned = TRUE WHERE user_id IN (8, 65, 87);
+UPDATE communities_users SET is_admin = TRUE WHERE user_id IN (1, 56, 74, 12, 34);
+
+
+DESC messages;
+
+ALTER TABLE messages ADD column attached_media_id INT UNSIGNED AFTER body;
+
+UPDATE messages SET attached_media_id = (
+  SELECT id FROM media WHERE user_id = from_user_id LIMIT 1
+);
+
+
 INSERT INTO `friendship` VALUES ('1','3','2','2011-01-25 06:35:22','2008-02-09 03:36:13'),
 ('1','17','6','1991-03-16 16:17:49','1985-12-30 14:24:13'),
 ('1','18','9','1990-10-24 15:03:43','2012-05-20 11:34:38'),
