@@ -103,7 +103,7 @@ INSERT INTO cities (`label`, `name`) VALUES ('moscow', 'Москва'), ('novgor
 
 
 SELECT c.name AS `откуда`, ci.name AS `куда` 
-	FROM cities c LEFT JOIN cities ci LEFT JOIN flights f 
+	FROM cities c JOIN cities ci JOIN flights f 
 		ON c.label = f.`from` AND ci.label = f.`to` 
 			ORDER BY FIELD (f.`id`, 1, 2, 3, 4, 5);
 
