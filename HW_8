@@ -1,0 +1,163 @@
+ALTER TABLE profiles
+  ADD CONSTRAINT profiles_user_id_fk 
+    FOREIGN KEY (user_id) REFERENCES users(id)
+      ON DELETE CASCADE,
+  ADD CONSTRAINT profiles_photo_id_fk
+    FOREIGN KEY (photo_id) REFERENCES media(id)
+      ON DELETE SET NULL;
+
+-- Изменяем тип столбца при необходимости
+ALTER TABLE profiles DROP FOREIGN KEY profles_user_id_fk;
+ALTER TABLE profiles MODIFY COLUMN photo_id INT(10) UNSIGNED;
+      
+-- Для таблицы сообщений
+
+-- Смотрим структурв таблицы
+DESC messages;
+
+-- Добавляем внешние ключи
+ALTER TABLE messages
+  ADD CONSTRAINT messages_from_user_id_fk 
+    FOREIGN KEY (from_user_id) REFERENCES users(id),
+  ADD CONSTRAINT messages_to_user_id_fk 
+    FOREIGN KEY (to_user_id) REFERENCES users(id);
+
+-- Смотрим ERDiagram
+
+
+-- Если нужно удалить
+ALTER TABLE table_name DROP FOREIGN KEY constraint_name;
+
+
+-- №1 
+
+ALTER TABLE media
+  ADD CONSTRAINT media_user_id_fk 
+    FOREIGN KEY (user_id) REFERENCES users(id) 
+   ON DELETE SET NULL;
+
+ALTER TABLE media DROP FOREIGN KEY media_user_id_fk;
+ALTER TABLE media MODIFY COLUMN user_id INT(10) UNSIGNED;
+    
+ALTER TABLE posts
+  ADD CONSTRAINT posts_user_id_fk 
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE,
+  ADD CONSTRAINT posts_attached_media_id
+ 	FOREIGN KEY (attached_media_id) REFERENCES media(id)
+ ON DELETE SET NULL;
+
+ALTER TABLE posts DROP FOREIGN KEY posts_attached_media_id;
+    
+ALTER TABLE user_privacy
+  ADD CONSTRAINT user_privacy_user_id_fk 
+    FOREIGN KEY (user_id) REFERENCES users(id),
+  ADD CONSTRAINT user_privacy_section_id_fk 
+    FOREIGN KEY (section_id) REFERENCES `section`(id),
+  ADD CONSTRAINT user_privacy_privacy_id_fk 
+    FOREIGN KEY (privacy_id) REFERENCES privacy_except_user(id);
+
+ALTER TABLE user_privacy DROP FOREIGN KEY user_privacy_section_id_fk;
+   
+ ALTER TABLE likes
+  ADD CONSTRAINT likes_user_id_fk 
+    FOREIGN KEY (user_id) REFERENCES users(id),
+  ADD CONSTRAINT likes_target_id_fk 
+    FOREIGN KEY (target_id) REFERENCES media(id),
+  ADD CONSTRAINT likes_target_type_id_fk
+    FOREIGN KEY (target_type_id) REFERENCES target_types(id);
+ 
+
+ALTER TABLE likes DROP FOREIGN KEY likes_target_type_id_fk;
+
+   
+DESC media_types;
+DESC likes;
+DESC users;
+SELECT * FROM likes;
+SELECT * FROM media_types mt;
+
+UPDATE likes SET target_type_id = RAND()*(4-1)+1;
+
+ALTER TABLE media
+  ADD CONSTRAINT media_media_type_id_fk 
+    FOREIGN KEY (media_type_id) REFERENCES media_types(id);
+   
+ALTER TABLE communities_users
+ ADD CONSTRAINT communities_users_user_id_fk 
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  ON DELETE CASCADE,
+ ADD CONSTRAINT communities_users_community_id_fk 
+    FOREIGN KEY (community_id) REFERENCES communities(id);
+   
+ALTER TABLE privacy_except_user
+  ADD CONSTRAINT privacy_except_user_user_id_fk 
+    FOREIGN KEY (user_id) REFERENCES users(id),
+  ADD CONSTRAINT privacy_except_user_friend_id_fk 
+    FOREIGN KEY (friend_id) REFERENCES users(id);
+
+ALTER TABLE friendship
+  ADD CONSTRAINT friendship_user_id_fk 
+    FOREIGN KEY (user_id) REFERENCES users(id),
+  ADD CONSTRAINT friendship_friend_id_fk 
+    FOREIGN KEY (friend_id) REFERENCES users(id),
+  ADD CONSTRAINT friendship_status_id_fk
+ 	FOREIGN KEY (status_id) REFERENCES friendship_statuses(id);
+ 
+ 
+ -- №3
+-- #2 Пусть задан некоторый пользователь. Из всех друзей этого пользователя найдите человека, который больше всех общался с нашим пользователем.
+
+SELECT u.id, COUNT(body) as max_msgs
+	FROM users u
+		LEFT JOIN friendship f
+			ON (user_id = u.id AND f.status_id <> 1) OR (friend_id = u.id AND f.status_id <> 1)
+		INNER JOIN messages m
+			ON m.from_user_id = f.user_id AND m.to_user_id = f.friend_id
+	WHERE f.user_id = 17 OR f.friend_id = 17 GROUP BY u.id ORDER BY max_msgs DESC LIMIT 1, 1;
+
+SELECT COUNT(*) FROM messages m WHERE to_user_id = 17 OR from_user_id = 17;
+SELECT * FROM friendship f where (user_id = 17 or friend_id =17) AND status_id <> 1;
+
+SELECT from_user_id, to_user_id, count(body) from messages m where from_user_id = 17 GROUP by to_user_id;
+SELECT from_user_id, to_user_id, count(body) from messages m where to_user_id = 5 AND from_user_id = 25;
+-- #3 Подсчитать общее количество лайков, которые получили 10 самых молодых пользователей.
+
+SELECT SUM(max_likes) AS likes_for_youngest FROM (SELECT COUNT(l.user_id) AS max_likes
+	FROM users u
+		JOIN profiles p
+			ON u.id = p.user_id 
+		JOIN likes l
+			ON p.user_id = l.user_id
+		WHERE u.id = p.user_id GROUP BY u.id ORDER BY p.birthday DESC LIMIT 10) AS likes;
+		
+
+-- #4 Определить кто больше поставил лайков (всего) - мужчины или женщины?
+SELECT CASE(sex)
+		WHEN 'm' THEN 'man'
+		WHEN 'f' THEN 'woman'
+	END AS sex, COUNT(*) as likes_count 
+	  	FROM likes l
+			JOIN  profiles p
+				ON l.user_id = p.user_id
+  	GROUP BY sex ORDER BY likes_count DESC LIMIT 1;
+ 
+-- №5 Найти 10 пользователей, которые проявляют наименьшую активность в использовании социальной сети.
+
+SELECT DISTINCT m.user_id, COUNT(m.user_id) activity
+	FROM media m
+		JOIN likes l
+			ON l.user_id = m.user_id
+		JOIN messages msgs
+	WHERE msgs.from_user_id = m.user_id GROUP BY m.user_id ORDER BY activity LIMIT 10;
+		
+	
+SELECT id,
+	(SELECT COUNT(*) FROM likes WHERE likes.user_id = users.id) + 
+	(SELECT COUNT(*) FROM media WHERE media.user_id = users.id) + 
+	(SELECT COUNT(*) FROM messages WHERE messages.from_user_id = users.id) 
+	AS overall_activity 
+	FROM users
+	ORDER BY overall_activity
+	LIMIT 10;
+	
