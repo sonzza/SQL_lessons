@@ -144,12 +144,15 @@ SELECT CASE(sex)
  
 -- №5 Найти 10 пользователей, которые проявляют наименьшую активность в использовании социальной сети.
 
-SELECT DISTINCT m.user_id, COUNT(m.user_id) activity
-	FROM media m
+SELECT u.id `user`, COUNT(u.id) activity
+	FROM users u
 		JOIN likes l
-			ON l.user_id = m.user_id
+			ON l.user_id = u.id
 		JOIN messages msgs
-	WHERE msgs.from_user_id = m.user_id GROUP BY m.user_id ORDER BY activity LIMIT 10;
+			ON msgs.from_user_id = u.id
+		JOIN media m	
+			ON u.id = m.user_id
+	WHERE u.id = l.user_id GROUP By u.id ORDER BY activity LIMIT 10;
 		
 	
 SELECT id,
