@@ -20,7 +20,7 @@ DELIMITER //
  
 DROP FUNCTION IF EXISTS hello //
 CREATE FUNCTION hello()	
-RETURNS VARCHAR(255) DETERMINISTIC
+RETURNS VARCHAR(255) NO SQL
 	BEGIN
 			IF DATE_FORMAT(NOW(), '%H:%i:%s') BETWEEN '06:00:01' AND '12:00:00' THEN
 				RETURN 'Good morinig!';
@@ -33,7 +33,7 @@ RETURNS VARCHAR(255) DETERMINISTIC
 		END IF;
 	END //
 
-SELECT hello()//
+SELECT hello();
 
 
 -- #4 В таблице products есть два текстовых поля: name с названием товара и description с его описанием. Допустимо присутствие обоих полей или одно из них. Ситуация, когда оба поля принимают неопределенное значение NULL неприемлема. Используя триггеры, добейтесь того, чтобы одно из этих полей или оба поля были заполнены. При попытке присвоить полям NULL-значение необходимо отменить операцию.
