@@ -49,7 +49,7 @@ SELECT first_name, email FROM users LIMIT 10;
 
 
 USE shop;
-SELECT * FROM products LIMIT 3;
+SELECT * FROM products LIMIT 5;
 
 
 
@@ -64,3 +64,10 @@ db.products.insert({name: 'Intel Core i5-7400', cat: 'процессоры',
 db.products.insert({name: 'ASUS ROG MAXIMUS X HERO', cat: 'материнские платы',
     description: 'Материнская плата ASUS ROG MAXIMUS X HERO, Z370, Socket 1151-V2, DDR4, ATX',
     price: 19310.00})
+db.products.insert({name: 'AMD FX-8320E', cat: 'процессоры',
+    description: 'Процессор для настольных персональных компьютеров, основанных на платформе AMD',
+    price: 4780.00})
+db.products.insert({name: 'AMD FX-8320', cat: 'процессоры',
+    description: 'Процессор для настольных персональных компьютеров, основанных на платформе AMD',
+    price: 7120.00})    
+
